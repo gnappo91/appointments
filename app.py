@@ -1,8 +1,14 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+import numpy as np
 from pdb import set_trace
+st.set_page_config(layout="wide")
+import re
 
+def is_valid_time(time_str: str) -> bool:
+    pattern = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+    return bool(pattern.match(time_str))
 # ------------------------
 # Core scheduling functions
 # ------------------------
@@ -63,7 +69,20 @@ def assign_slots(agenda_df, disp_df):
 
     return agenda_df, non_assigned
 
+# Define a styling function
+def color_cells(val):
+    
+    if val=="Libero":
+        return f"background-color: lightgray"
+    
+    if val=="Fuori sede":
+        return f"background-color: salmon"
 
+    if is_valid_time(val):
+        return
+    
+    if val!="Fuori sede":
+        return f"background-color: lightgreen"
 # ------------------------
 # Streamlit UI
 # ------------------------
@@ -91,7 +110,9 @@ if uploaded_file:
             st.success("✅ Assegnazione completata!")
 
             st.subheader("Calendario aggiornato")
-            st.dataframe(updated_agenda)
+            updated_agenda.fillna("Libero",inplace=True)
+            styled_updated_agenda = updated_agenda.style.applymap(color_cells)
+            st.dataframe(styled_updated_agenda)
 
             if non_assigned:
                 st.subheader("Non Assegnati")
